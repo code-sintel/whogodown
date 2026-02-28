@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍱 抽签 · 今日结果直显</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+      background: linear-gradient(145deg, #f0f7ff 0%, #e2eff9 100%);
+      padding: 20px 16px;
+      position: relative;
+      animation: bgPulse 12s infinite alternate ease-in-out;
+    }
+
+    @keyframes bgPulse {
+      0% {
+        background: linear-gradient(145deg, #f0f7ff, #e2eff9);
+      }
+
+      100% {
+        background: linear-gradient(145deg, #e6f0fa, #d5e9f5);
+      }
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 2.4rem;
+      color: #1e2b3c;
+      margin-bottom: 0.25rem;
+      text-shadow: 0 2px 10px rgba(0, 100, 200, 0.15);
+      letter-spacing: 1px;
+      animation: floatTitle 3s ease-in-out infinite;
+    }
+
+    @keyframes floatTitle {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-3px);
+      }
+    }
+
+    #box {
+      width: 460px;
+      max-width: 96%;
+      margin: 20px auto 16px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 32px 24px;
+      border-radius: 48px;
+      box-shadow: 0 30px 50px -20px rgba(0, 55, 120, 0.3),
+        inset 0 1px 4px rgba(255, 255, 255, 0.8);
+      transition: box-shadow 0.3s, transform 0.25s;
+      animation: cardAppear 0.6s cubic-bezier(0.12, 0.71, 0.33, 1);
+    }
+
+    @keyframes cardAppear {
+      0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    #box:hover {
+      box-shadow: 0 35px 55px -18px rgba(0, 100, 200, 0.4);
+    }
+
+    #display {
+      font-size: 2.4rem;
+      font-weight: 500;
+      min-height: 100px;
+      line-height: 1.3;
+      padding: 10px 10px;
+      margin-bottom: 20px;
+      color: #0b2a41;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 80px;
+      border: 2px dashed rgba(80, 150, 255, 0.4);
+      letter-spacing: 2px;
+      text-shadow: 0 4px 10px rgba(0, 160, 255, 0.3);
+      transition: background 0.2s, border-color 0.2s;
+      animation: glowPulse 3s infinite alternate;
+      word-break: break-word;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    @keyframes glowPulse {
+      0% {
+        border-color: rgba(80, 150, 255, 0.3);
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      100% {
+        border-color: rgba(0, 112, 243, 0.6);
+        background: rgba(255, 255, 255, 0.7);
+      }
+    }
+
+    /* 抽签滚动时闪烁效果 */
+    #display.rolling-active {
+      animation: rollBlink 0.2s infinite alternate;
+      border-style: solid;
+      border-color: #ffaa33;
+      background: rgba(255, 243, 205, 0.6);
+    }
+
+    @keyframes rollBlink {
+      0% {
+        text-shadow: 0 0 2px #ffb347, 0 0 8px #ffe68f;
+        transform: scale(1);
+      }
+
+      100% {
+        text-shadow: 0 0 12px #ffa01c, 0 0 24px #fff2b5;
+        transform: scale(1.02);
+      }
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 18px 0 12px;
+    }
+
+    button {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 60px;
+      font-size: 1.1rem;
+      font-weight: 550;
+      background: #ffffffd9;
+      backdrop-filter: blur(4px);
+      color: #1e3c5a;
+      box-shadow: 0 8px 18px -6px rgba(0, 80, 160, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      flex: 0 1 auto;
+      min-width: 140px;
+    }
+
+    button:hover {
+      background: #ffffff;
+      box-shadow: 0 12px 24px -8px #2d7fd1, 0 0 0 1px #ffffff inset;
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 4px 10px -4px #2a6eb0;
+    }
+
+    button:first-child {
+      background: linear-gradient(115deg, #ffffff, #ecf5ff);
+      color: #0059b3;
+      border: 1px solid #a3ceff;
+    }
+
+    button:first-child:hover {
+      background: linear-gradient(115deg, #ecf5ff, #ffffff);
+    }
+
+    button:last-child {
+      background: #fef8e7;
+      color: #b85e00;
+    }
+
+    button:last-child:hover {
+      background: #fff2d3;
+    }
+
+    #message {
+      margin: 16px 0 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      min-height: 32px;
+      color: #d45a00;
+      background: rgba(255, 255, 240, 0.7);
+      padding: 8px 18px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 210, 100, 0.5);
+      animation: messagePop 0.3s;
+    }
+
+    @keyframes messagePop {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      80% {
+        transform: scale(1.02);
+      }
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #184d7a;
+      background: rgba(220, 240, 255, 0.7);
+      padding: 12px 16px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      border: 1px solid #a9d0ff;
+      transition: 0.2s;
+      animation: resultFadeIn 0.5s;
+    }
+
+    @keyframes resultFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #historyBox {
+      margin-top: 20px;
+      width: 460px;
+      max-width: 96%;
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 48px;
+      padding: 22px 24px 26px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 20px 40px -18px #204e7a;
+      transition: all 0.3s;
+      animation: cardAppear 0.7s 0.1s both;
+    }
+
+    #historyBox h3 {
+      font-size: 1.7rem;
+      font-weight: 550;
+      color: #183f58;
+      margin-bottom: 18px;
+      border-bottom: 3px dotted #9bc5ff;
+      padding-bottom: 8px;
+      display: inline-block;
+    }
+
+    #history {
+      list-style: none;
+      max-height: 230px;
+      overflow-y: auto;
+      padding-right: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: #a3c6ff #e2edff;
+    }
+
+    #history::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #history::-webkit-scrollbar-track {
+      background: #e2edff;
+      border-radius: 20px;
+    }
+
+    #history::-webkit-scrollbar-thumb {
+      background: #a3c6ff;
+      border-radius: 20px;
+    }
+
+    #history li {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(4px);
+      border-radius: 60px;
+      font-size: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 2px 6px rgba(0, 30, 60, 0.1);
+      color: #1b4c7c;
+      transition: transform 0.2s, background 0.2s;
+      transform-origin: left;
+      animation: slideInItem 0.3s;
+    }
+
+    @keyframes slideInItem {
+      0% {
+        opacity: 0;
+        transform: translateX(-14px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    #history li:hover {
+      background: white;
+      transform: scale(1.02) translateX(6px);
+      border-color: #b6d6ff;
+    }
+
+    .vote-message {
+      background: #e1efff;
+      border: 1px solid #3c8eff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🍜 今日抽签</h1>
+
+  <div id="box">
+    <!-- 默认显示等待抽签，但会在loadStatus中根据是否有结果更新 -->
+    <div id="display">🥢 等待抽签</div>
+
+    <div class="button-group">
+      <button onclick="draw()">✨ 开始抽签</button>
+      <button onclick="resetVote()">🔄 申请重置</button>
+    </div>
+
+    <div id="message"></div>
+    <div id="result"></div>
+  </div>
+
+  <div id="historyBox">
+    <h3>📋 历史记录</h3>
+    <ul id="history"></ul>
+  </div>
+
+  <script>
+    (function () {
+      let rollingInterval = null;
+      let rollingNames = [];
+
+      const displayEl = document.getElementById('display');
+      const messageEl = document.getElementById('message');
+      const resultEl = document.getElementById('result');
+      const historyEl = document.getElementById('history');
+
+      // 核心修改：加载状态时，如果今天已有结果，直接显示在 display 上，而不是等待抽签
+      async function loadStatus() {
+        const res = await fetch("/api/status");
+        const data = await res.json();
+
+        // 处理今日结果展示 —— 关键改动
+        if (data.result) {
+          // 如果已经有结果，让大盒子显示中签的人和项，更醒目
+          // 可以根据需要调整格式，这里显示 "XX 抽中 YY"
+          displayEl.innerText = `✨ ${data.result.selected} ✨`;
+          // 同时下面小字也显示
+          resultEl.innerText = `今日结果： ${data.result.selected}`;
+        } else {
+          // 没有结果则保持等待抽签 (如果之前被重置过也可能是空，但等待是合理的)
+          displayEl.innerText = '🥢 等待抽签';
+          resultEl.innerText = '';    // 清空下方结果区
+        }
+
+        // 更新历史 (保持不变)
+        historyEl.innerHTML = "";
+        if (data.history && Array.isArray(data.history)) {
+          data.history.slice(-10).reverse().forEach(r => {
+            const li = document.createElement("li");
+            li.innerText = `${r.time} - ${r.selected}`;
+            historyEl.appendChild(li);
+          });
+        }
+      }
+
+      function showMessage(text, color = "#e67e22") {
+        messageEl.style.color = color;
+        messageEl.innerText = text;
+        messageEl.style.animation = 'none';
+        messageEl.offsetHeight;
+        messageEl.style.animation = 'messagePop 0.3s';
+      }
+
+      function startRolling() {
+        if (rollingInterval) clearInterval(rollingInterval);
+        let index = 0;
+        displayEl.classList.add('rolling-active');
+        rollingInterval = setInterval(() => {
+          if (rollingNames.length > 0) {
+            displayEl.innerText = rollingNames[index % rollingNames.length];
+            index++;
+          } else {
+            displayEl.innerText = '🏷️ 无名单';
+          }
+        }, 120);
+      }
+
+      function stopRolling() {
+        clearInterval(rollingInterval);
+        rollingInterval = null;
+        displayEl.classList.remove('rolling-active');
+      }
+
+      async function draw() {
+        showMessage("");
+
+        const statusRes = await fetch("/api/status");
+        const statusData = await statusRes.json();
+
+        // 如果已经有结果，直接提示并返回（同时保留显示结果，不再滚动）
+        if (statusData.result) {
+          showMessage("今天已经抽过了", "red");
+          return;
+        }
+
+        const nameRes = await fetch("/api/names");
+        rollingNames = await nameRes.json();
+
+        startRolling();
+
+        setTimeout(async () => {
+          const res = await fetch("/api/draw", { method: "POST" });
+          const data = await res.json();
+
+          stopRolling();
+
+          if (data.success) {
+            // 抽签成功，更新显示
+            displayEl.innerText = data.result.selected;
+            resultEl.innerText = `今天结果：${data.result.drawer} 抽中了 ${data.result.selected}`;
+            showMessage("抽签完成", "green");
+          } else if (data.already) {
+            showMessage("今天已经抽过了", "red");
+            // 如果返回 already，但前端没有及时同步，重新加载状态让显示修复
+            loadStatus();
+          } else {
+            showMessage(data.error || "抽签失败", "red");
+          }
+
+          loadStatus();  // 刷新历史，同时会更新display和result保持一致
+        }, 2000);
+      }
+
+      async function resetVote() {
+        const res = await fetch("/api/reset", { method: "POST" });
+        const data = await res.json();
+
+        if (data.reset) {
+          displayEl.innerText = "🗂️ 已重置";
+          resultEl.innerText = "";
+          showMessage("全部同意，已重置成功", "green");
+        } else if (data.votes !== undefined) {
+          showMessage(`当前重置票数：${data.votes}`, "#555");
+        } else {
+          showMessage(data.error || "操作失败", "red");
+        }
+
+        loadStatus();  // 刷新状态 (重置成功后，data.result 应为空，从而 display 恢复 "等待抽签")
+      }
+
+      window.draw = draw;
+      window.resetVote = resetVote;
+
+      // 页面加载时立即调用，这样如果有结果就不再显示“等待抽签”
+      loadStatus();
+    })();
+  </script>
+
+  <!-- 接口路径保持 /api/* ，未作任何修改 -->
+</body>
+
+</html>
