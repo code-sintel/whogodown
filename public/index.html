@@ -398,7 +398,7 @@
         if (data.history && Array.isArray(data.history)) {
           data.history.slice(-10).reverse().forEach(r => {
             const li = document.createElement("li");
-            li.innerText = `${r.time} - ${r.selected}`;
+            li.innerText = `${r.time} - ${r.drawer} 抽中 ${r.selected}`;
             historyEl.appendChild(li);
           });
         }
